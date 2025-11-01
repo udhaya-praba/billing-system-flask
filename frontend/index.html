@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Modal Billing System UI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        :root {
+            --primary-color: #007bff;
+            --primary-hover: #0056b3;
+            --secondary-color: #6c757d;
+            --background-color: #f4f6f9;
+            --card-background: #ffffff;
+            --text-color: #333;
+            --shadow: 0 4px 10px rgba(0, 0, 0, 0.05); /* Lighter shadow */
+            --success-color: #28a745;
+            --danger-color: #dc3545;
+        }
+
+        /* 1. Global Cleanup */
+        body {
+            font-family: "Inter", sans-serif;
+            margin: 0;
+            padding: 20px; /* Reduced outer padding */
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.5; /* Slightly tighter line height */
+        }
+
+        .container {
+            max-width: 900px; /* Slightly narrower container */
+            margin: 0 auto;
+            background-color: var(--card-background);
+            padding: 25px; /* Reduced internal padding */
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+        }
+
+        h1 {
+            color: var(--primary-color);
+            text-align: center;
+            margin-bottom: 25px;
+            font-size: 1.8em; /* Slightly smaller title */
+            font-weight: 700;
+        }
+
+        /* 2. Section Styles Cleanup */
+        .section-box {
+            border: 1px solid #e9ecef; /* Lighter border for a cleaner look */
+            padding: 15px; /* Reduced section padding */
+            margin-bottom: 20px; /* Reduced margin between sections */
+            border-radius: 6px;
+        }
+
+        .section-box h3 {
+            color: #495057;
+            border-bottom: 1px solid #f8f9fa; /* Thinner/lighter divider */
+            padding-bottom: 10px;
+            margin-top: 0;
+            margin-bottom: 15px; /* Separator for content */
+            font-weight: 600;
+            font-size: 1.2em;
+        }
+
+        /* Form Elements */
+        .form-group {
+            display: flex; /* Ensure labels and inputs align well */
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        label {
+            flex-shrink: 0;
+            font-weight: 600;
+            font-size: 0.9em;
+            width: 150px; /* Fixed width for labels for alignment */
+        }
+        input, select {
+            padding: 8px 10px; /* Reduced input padding */
+            border-radius: 4px;
+            border: 1px solid #ced4da;
+            flex-grow: 1;
+            box-sizing: border-box;
+            transition: border-color 0.2s;
+        }
+        input[type="number"] {
+            text-align: right;
+        }
+
+        /* --- Bill Section (Dynamic Grid) --- */
+        .bill-header {
+            display: grid;
+            grid-template-columns: 3fr 1fr 50px;
+            gap: 10px;
+            margin-bottom: 5px;
+            padding-right: 5px; /* Alignment with scrollable area */
+            font-weight: 700;
+            font-size: 0.9em;
+            color: #555;
+        }
+        #bill-section-inputs {
+            display: grid;
+            grid-template-columns: 3fr 1fr 50px;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .bill-item-row {
+            display: contents;
+        }
+        .remove-btn {
+            padding: 6px 0; /* Reduced padding */
+        }
+        /* Animation (retained) */
+        @keyframes itemHighlight {
+            0% { background-color: #fff3cd; }
+            100% { background-color: transparent; }
+        }
+        .highlight-row {
+            animation: itemHighlight 1.5s ease-out;
+        }
+
+        /* --- Denominations Section (Refined Grid) --- */
+        .denomination-grid {
+            /* Better use of horizontal space, 3 columns */
+            display: grid;
+            grid-template-columns: repeat(3, 1fr); 
+            gap: 15px 30px; /* More compact spacing */
+            max-width: 600px;
+            margin-bottom: 20px;
+        }
+        .denom-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .denom-label {
+            font-weight: 600;
+            flex-shrink: 0;
+            width: 40px; /* Consistent width for denomination values */
+            text-align: right;
+        }
+        .denom-input {
+            width: 100%;
+            max-width: 80px; /* Control input width */
+            text-align: center;
+        }
+        
+        /* Summary and Controls */
+        #total-amount {
+            font-size: 1.4em; /* Slightly smaller total */
+            color: var(--primary-color); /* Use primary color for total */
+        }
+        #change-due-info {
+            padding: 10px 0;
+            border-top: 1px dashed #e9ecef;
+            margin-top: 10px !important;
+        }
+
+        /* Buttons */
+        .controls {
+            padding-top: 15px; /* Reduced spacing */
+            margin-top: 15px;
+        }
+        .btn {
+            padding: 8px 18px; /* Slightly smaller button size */
+        }
+        .btn-success {
+            background-color: var(--success-color);
+        }
+        .btn-success:hover {
+            background-color: #1e7e34;
+        }
+
+        /* Status Messages */
+        #status-message {
+            margin-top: 10px;
+            padding: 8px;
+            font-size: 0.9em;
+        }
+
+        /* Remove old H1 (replaced by centered h2) and unused styling */
+        h1:first-of-type { display: none; }
+        .header-controls h2 {
+            margin: 0;
+            font-size: 1.8em;
+            color: var(--primary-color);
+        }
+        .header-controls {
+            border-bottom: 1px solid #eee;
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+        }
+        .header-controls .btn {
+            /* Styles for navigation buttons */
+            background-color: var(--secondary-color);
+            color: white;
+            text-decoration: none;
+        }
+        .header-controls .btn:hover {
+            background-color: #5a6268;
+        }
+        
+        /* Specific input width adjustments */
+        #paid_amount {
+            width: 150px;
+            flex-grow: 0;
+        }
+        .header-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header-controls">
+            <h2>💰 Billing Terminal</h2>
+            <div>
+                <a href="/bills.html" class="btn" style="margin-left: 10px">View All Bills</a>
+                <a href="/products.html" class="btn" style="margin-left: 10px">All Products</a>
+            </div>
+        </div>
+        
+        <div class="section-box">
+            <h3>Customer & Order</h3>
+
+            <div class="form-group">
+                <label for="customer_email">Customer Email</label>
+                <input
+                    type="email"
+                    id="customer_email"
+                    placeholder="Enter email ID (Optional)"
+                />
+            </div>
+
+            <div class="bill-header">
+                <span>Product</span>
+                <span>Qty</span>
+                <span>Remove</span>
+            </div>
+
+            <div id="bill-section-inputs">
+                <div class="bill-item-row" id="empty-cart-message">
+                    <span
+                        style="
+                            grid-column: 1 / span 3;
+                            color: var(--secondary-color);
+                            font-style: italic;
+                            text-align: center;
+                            padding: 10px 0;
+                        "
+                        >No items added to cart.</span
+                    >
+                </div>
+            </div>
+
+            <button
+                class="btn"
+                id="add-new-item-btn"
+                style="background-color: var(--primary-color); margin-top: 10px"
+            >
+                ➕ Add Item
+            </button>
+
+            <div style="text-align: right; margin-top: 20px">
+                <strong>ORDER TOTAL:</strong>
+                <span id="total-amount">$0.00</span>
+            </div>
+        </div>
+
+        <div class="section-box">
+            <h3>Cash Payment Denominations</h3>
+
+            <div class="denomination-grid">
+                <div class="denom-item">
+                    <div class="denom-label">500</div>
+                    <input type="number" data-denom="500" class="denom-input" value="0" min="0" placeholder="Count"/>
+                </div>
+                <div class="denom-item">
+                    <div class="denom-label">50</div>
+                    <input type="number" data-denom="50" class="denom-input" value="0" min="0" placeholder="Count"/>
+                </div>
+                <div class="denom-item">
+                    <div class="denom-label">20</div>
+                    <input type="number" data-denom="20" class="denom-input" value="0" min="0" placeholder="Count"/>
+                </div>
+                <div class="denom-item">
+                    <div class="denom-label">10</div>
+                    <input type="number" data-denom="10" class="denom-input" value="0" min="0" placeholder="Count"/>
+                </div>
+                <div class="denom-item">
+                    <div class="denom-label">5</div>
+                    <input type="number" data-denom="5" class="denom-input" value="0" min="0" placeholder="Count"/>
+                </div>
+                <div class="denom-item">
+                    <div class="denom-label">1</div>
+                    <input type="number" data-denom="1" class="denom-input" value="0" min="0" placeholder="Count"/>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="paid_amount" style="width: 175px;">Cash paid by customer</label>
+                <input
+                    type="number"
+                    id="paid_amount"
+                    step="0.01"
+                    min="0"
+                    placeholder="Enter Amount"
+                />
+                <button class="btn" id="calculate-paid-btn" style="background-color: #f0ad4e;">Sum Denominations</button>
+            </div>
+
+            <div
+                id="change-due-info"
+                style="font-size: 1.1em; font-weight: 700"
+            >
+                Change Due: <span id="change-amount">$0.00</span>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="btn btn-cancel" id="cancel-bill-btn">Cancel</button>
+            <button class="btn btn-success" id="generate-bill-btn">
+                Generate Bill
+            </button>
+        </div>
+
+        <div id="status-message" style="display: none"></div>
+    </div>
+
+    <script>
+        // NOTE: The JavaScript remains largely the same, focusing on functionality.
+        // CSS variables are used for color changes, but the core logic is preserved.
+        const API_URL = "http://127.0.0.1:8000";
+        let products = [];
+        let cart = [];
+
+        // UI Elements
+        const billInputsContainer = document.getElementById("bill-section-inputs");
+        const emptyCartMessage = document.getElementById("empty-cart-message");
+        const totalAmountSpan = document.getElementById("total-amount");
+        const paidAmountInput = document.getElementById("paid_amount");
+        const changeAmountSpan = document.getElementById("change-amount");
+        const denomInputs = document.querySelectorAll(".denom-input");
+        const statusMessageElement = document.getElementById("status-message");
+
+        // Buttons
+        const addNewItemBtn = document.getElementById("add-new-item-btn");
+        const calculatePaidBtn = document.getElementById("calculate-paid-btn");
+        const generateBillBtn = document.getElementById("generate-bill-btn");
+        const cancelBillBtn = document.getElementById("cancel-bill-btn");
+        
+        const varStyle = getComputedStyle(document.documentElement);
+        
+        function showMessage(message, isError = true) {
+            statusMessageElement.textContent = message;
+            statusMessageElement.style.display = "block";
+            statusMessageElement.className = isError
+                ? "error-message"
+                : "success-message";
+            statusMessageElement.style.opacity = 1;
+            setTimeout(() => {
+                statusMessageElement.style.opacity = 0;
+                setTimeout(() => {
+                    statusMessageElement.style.display = "none";
+                }, 500);
+            }, 5000);
+        }
+
+        async function fetchProducts() {
+            try {
+                const response = await fetch(`${API_URL}/products`);
+                products = await response.json();
+            } catch (error) {
+                showMessage("Failed to load products. Check API connection.");
+            }
+        }
+
+        function calculateTotals() {
+            let total = 0;
+            cart.forEach((item) => {
+                const product = products.find(
+                    (p) => p.product_id === item.product_id
+                );
+                if (!product) return;
+                const itemSubtotal = product.price_per_unit * item.quantity;
+                const itemTax = itemSubtotal * (product.tax_percentage / 100);
+                total += itemSubtotal + itemTax;
+            });
+            totalAmountSpan.textContent = `$${total.toFixed(2)}`;
+            return total;
+        }
+
+        function renderBillInputs(highlightProductId = null) {
+            billInputsContainer.innerHTML = "";
+
+            if (cart.length === 0) {
+                emptyCartMessage.style.display = "contents";
+                billInputsContainer.appendChild(emptyCartMessage);
+            } else {
+                emptyCartMessage.style.display = "none";
+
+                cart.forEach((item) => {
+                    const product = products.find(
+                        (p) => p.product_id === item.product_id
+                    );
+                    if (!product) return;
+
+                    const row = document.createElement("div");
+                    row.className = "bill-item-row";
+                    if (item.product_id === highlightProductId) {
+                        row.classList.add("highlight-row"); // Animation
+                    }
+
+                    const selectHtml = `<select data-type="product-id" data-id="${
+                        item.product_id
+                    }" style="width: 100%;">
+                                        ${products
+                                            .map(
+                                                (p) =>
+                                                    `<option value="${
+                                                        p.product_id
+                                                    }" ${
+                                                        p.product_id === item.product_id
+                                                            ? "selected"
+                                                            : ""
+                                                    }>
+                                                        ${
+                                                            p.name
+                                                        } ($${p.price_per_unit.toFixed(
+                                                            2
+                                                        )})
+                                                    </option>`
+                                            )
+                                            .join("")}
+                                    </select>`;
+
+                    const quantityHtml = `<input type="number" data-type="quantity" data-id="${
+                        item.product_id
+                    }" value="${item.quantity}" min="1" max="${
+                        product.available_stocks + item.quantity
+                    }" style="width: 100%;">`;
+
+                    const removeBtnHtml = `<button class="remove-btn" data-id="${item.product_id}">X</button>`;
+
+                    row.innerHTML = `
+                        ${selectHtml}
+                        ${quantityHtml}
+                        ${removeBtnHtml}
+                    `;
+                    billInputsContainer.appendChild(row);
+                });
+            }
+            calculateTotals();
+        }
+
+        // --- Event Listeners ---
+
+        addNewItemBtn.addEventListener("click", () => {
+            const firstProduct = products[0];
+            if (!firstProduct) {
+                showMessage("No products available to add.", true);
+                return;
+            }
+
+            // Create a temporary ID for a new, unsaved product in cart
+            const newProductId = 'temp-' + Date.now(); 
+            // Add a new unique item initialized with the first product
+            cart.push({ product_id: newProductId, quantity: 1 });
+            renderBillInputs(newProductId);
+            
+            // To ensure the select box is immediately populated with the actual first product ID
+            const newItemIndex = cart.findIndex(item => item.product_id === newProductId);
+            if(newItemIndex !== -1) {
+                cart[newItemIndex].product_id = firstProduct.product_id;
+                renderBillInputs(firstProduct.product_id); // Re-render to link ID correctly
+            }
+        });
+
+        billInputsContainer.addEventListener("click", (event) => {
+            if (event.target.classList.contains("remove-btn")) {
+                const productId = event.target.dataset.id;
+                cart = cart.filter((item) => item.product_id !== productId);
+                renderBillInputs();
+                calculateTotals();
+            }
+        });
+
+        billInputsContainer.addEventListener("change", (event) => {
+            const target = event.target;
+            const currentProductId = target.dataset.id;
+            let cartItem = cart.find((item) => item.product_id === currentProductId);
+
+            if (!cartItem) return;
+
+            if (target.dataset.type === "quantity") {
+                const newQuantity = parseInt(target.value, 10);
+                const product = products.find((p) => p.product_id === cartItem.product_id);
+
+                if (newQuantity <= 0 || (product && newQuantity > product.available_stocks + cartItem.quantity)) {
+                    showMessage(`Invalid quantity or insufficient stock.`, true);
+                    target.value = cartItem.quantity;
+                    return;
+                }
+                cartItem.quantity = newQuantity;
+            } else if (target.dataset.type === "product-id") {
+                const newProductId = target.value;
+                // Update the product_id of the item in the cart
+                cartItem.product_id = newProductId;
+                
+                // Update the data-id attribute on all related inputs for this row
+                const inputsInRow = target.closest('.bill-item-row').querySelectorAll('[data-id]');
+                inputsInRow.forEach(input => input.dataset.id = newProductId);
+                
+            }
+            renderBillInputs(cartItem.product_id);
+            calculateTotals();
+        });
+
+        calculatePaidBtn.addEventListener("click", () => {
+            let totalPaid = 0;
+            denomInputs.forEach((input) => {
+                const denom = parseFloat(input.dataset.denom);
+                const count = parseInt(input.value, 10) || 0;
+                totalPaid += denom * count;
+            });
+            paidAmountInput.value = totalPaid.toFixed(2);
+            updateChangeDue();
+            showMessage(`Calculated paid amount: $${totalPaid.toFixed(2)}`, false);
+        });
+
+        paidAmountInput.addEventListener("input", updateChangeDue);
+
+        function updateChangeDue() {
+            const total = parseFloat(totalAmountSpan.textContent.replace("$", ""));
+            const paid = parseFloat(paidAmountInput.value) || 0;
+            const change = paid - total;
+
+            changeAmountSpan.textContent = `$${change.toFixed(2)}`;
+            changeAmountSpan.style.color =
+                change >= 0
+                    ? varStyle.getPropertyValue("--success-color")
+                    : varStyle.getPropertyValue("--danger-color");
+        }
+
+        generateBillBtn.addEventListener("click", async () => {
+            const totalAmount = parseFloat(
+                totalAmountSpan.textContent.replace("$", "")
+            );
+            const paidAmount = parseFloat(paidAmountInput.value);
+            const customerEmail = document.getElementById("customer_email").value;
+
+            if (cart.length === 0) {
+                showMessage("The bill is empty. Please add items.", true);
+                return;
+            }
+            if (paidAmount < totalAmount) {
+                showMessage(
+                    `Insufficient payment. Need $${(totalAmount - paidAmount).toFixed(
+                        2
+                    )} more.`,
+                    true
+                );
+                return;
+            }
+
+            const billData = {
+                customer_email: customerEmail,
+                paid_amount: paidAmount,
+                items: cart,
+            };
+
+            try {
+                const response = await fetch(`${API_URL}/bills`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(billData),
+                });
+
+                if (!response.ok) {
+                    const err = await response.json();
+                    throw new Error(
+                        err.detail || `HTTP error! status: ${response.status}`
+                    );
+                }
+
+                const result = await response.json();
+                showMessage(
+                    `Bill #${
+                        result.bill_id
+                    } generated. Change to return: $${result.balance_amount.toFixed(
+                        2
+                    )}`,
+                    false
+                );
+
+                // Clear and Reset UI
+                cart = [];
+                renderBillInputs();
+                document.getElementById("customer_email").value = "";
+                paidAmountInput.value = "";
+                denomInputs.forEach((input) => (input.value = 0));
+                updateChangeDue();
+                fetchProducts(); // Refresh stock data
+            } catch (error) {
+                showMessage(`Error generating bill: ${error.message}`, true);
+            }
+        });
+
+        cancelBillBtn.addEventListener("click", () => {
+            if (
+                confirm(
+                    "Are you sure you want to cancel the current bill and clear all fields?"
+                )
+            ) {
+                cart = [];
+                renderBillInputs();
+                document.getElementById("customer_email").value = "";
+                paidAmountInput.value = "";
+                denomInputs.forEach((input) => (input.value = 0));
+                updateChangeDue();
+                showMessage("Bill cancelled and fields cleared.", false);
+            }
+        });
+
+        // Initialization
+        document.addEventListener("DOMContentLoaded", async () => {
+            await fetchProducts();
+            renderBillInputs();
+            updateChangeDue();
+        });
+    </script>
+</body>
+</html>

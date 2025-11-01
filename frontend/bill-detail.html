@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bill Details - Billing System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #007bff;
+            --background-color: #f4f6f9;
+            --card-background: #ffffff;
+            --text-color: #333;
+            --shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 40px;
+            background-color: var(--background-color);
+            color: var(--text-color);
+        }
+        .container { max-width: 800px; margin: 0 auto; }
+        h1 { color: var(--primary-color); font-weight: 700; border-bottom: 2px solid var(--primary-color); padding-bottom: 10px;}
+        .btn {
+            background-color: var(--primary-color);
+            color: white; padding: 10px 20px;
+            border: none; border-radius: 4px;
+            cursor: pointer; font-weight: 600;
+            text-decoration: none; display: inline-block;
+        }
+        .bill-container {
+            background-color: var(--card-background);
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+        }
+        .bill-header {
+            display: flex; justify-content: space-between; margin-bottom: 20px;
+        }
+        .detail-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .detail-item { font-size: 1.1em; }
+        .detail-label { font-weight: 600; }
+        #bill-items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        #bill-items-table th, #bill-items-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        #bill-items-table th { background-color: #f2f2f2; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="bills.html" class="btn" style="margin-bottom: 20px;">&larr; Back to All Bills</a>
+        <div id="bill-details-container"></div>
+    </div>
+
+    <script>
+        const API_URL = 'http://127.0.0.1:8000';
+
+        async function fetchBillDetails() {
+            const billId = new URLSearchParams(window.location.search).get('id');
+            if (!billId) {
+                document.getElementById('bill-details-container').innerHTML = '<h1>No Bill ID provided.</h1>';
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/bills/${billId}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const bill = await response.json();
+                renderBillDetails(bill);
+            } catch (error) {
+                document.getElementById('bill-details-container').innerHTML = `<h1>Error: Could not load bill #${billId}.</h1>`;
+            }
+        }
+
+        function renderBillDetails(bill) {
+            const container = document.getElementById('bill-details-container');
+            const itemsHtml = bill.bill_items.map(item => {
+                // The backend response for a single bill doesn't include the full product details in bill_items,
+                // so we display what we have.
+                return `
+                <tr>
+                    <td>Bill Item #${item.id}</td>
+                    <td>${item.quantity}</td>
+                    <td>$${item.unit_price.toFixed(2)}</td>
+                    <td>$${item.item_total.toFixed(2)}</td>
+                </tr>
+            `}).join('');
+
+            const denominations = JSON.parse(bill.balance_denominations);
+            const denominationsHtml = Object.entries(denominations).map(([denom, count]) => {
+                if (count > 0) return `<li>$${denom}: ${count}</li>`;
+                return '';
+            }).join('');
+
+            container.innerHTML = `
+                <div class="bill-container">
+                    <div class="bill-header">
+                        <h1>Bill #${bill.bill_number}</h1>
+                        <p>${new Date(bill.created_at).toLocaleString()}</p>
+                    </div>
+                    <p><span class="detail-label">Customer:</span> ${bill.customer_email}</p>
+                    
+                    <h3>Items Purchased</h3>
+                    <table id="bill-items-table">
+                        <thead><tr><th>Product</th><th>Quantity</th><th>Unit Price</th><th>Total</th></tr></thead>
+                        <tbody>${itemsHtml}</tbody>
+                    </table>
+
+                    <h3>Payment Details</h3>
+                    <div class="detail-grid">
+                        <div class="detail-item"><span class="detail-label">Subtotal:</span> $${bill.subtotal.toFixed(2)}</div>
+                        <div class="detail-item"><span class="detail-label">Total Tax:</span> $${bill.total_tax.toFixed(2)}</div>
+                        <div class="detail-item"><span class="detail-label">Total Amount:</span> $${bill.total_amount.toFixed(2)}</div>
+                        <div class="detail-item"><span class="detail-label">Amount Paid:</span> $${bill.paid_amount.toFixed(2)}</div>
+                        <div class="detail-item"><span class="detail-label">Balance Returned:</span> $${bill.balance_amount.toFixed(2)}</div>
+                    </div>
+
+                    ${denominationsHtml ? `<h3>Balance Denominations</h3><ul>${denominationsHtml}</ul>` : ''}
+                </div>
+            `;
+        }
+
+        document.addEventListener('DOMContentLoaded', fetchBillDetails);
+    </script>
+</body>
+</html>

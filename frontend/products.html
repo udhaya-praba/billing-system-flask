@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modal Billing System UI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #007bff;
+            --primary-hover: #0056b3;
+            --secondary-color: #6c757d;
+            --background-color: #f4f6f9;
+            --card-background: #ffffff;
+            --text-color: #333;
+            --shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 40px;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: var(--primary-color);
+            text-align: center;
+            margin-bottom: 30px;
+            font-weight: 700;
+        }
+
+        /* --- Main Content Layout --- */
+        .header-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        /* --- Button Styling --- */
+        .btn {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background-color 0.3s, transform 0.1s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        /* --- Product Card List --- */
+        .product-grid {
+            list-style-type: none;
+            padding: 0;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+        }
+
+        .product-card {
+            background-color: var(--card-background);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            border-left: 5px solid var(--primary-color);
+            transition: transform 0.3s ease-in-out, box-shadow 0.3s;
+        }
+
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
+        }
+
+        .card-title {
+            font-weight: 700;
+            font-size: 1.4em;
+            color: var(--primary-color);
+            margin-bottom: 5px;
+        }
+
+        .card-subtitle {
+            font-size: 0.9em;
+            color: var(--secondary-color);
+            margin-bottom: 15px;
+            border-bottom: 1px dashed #eee;
+            padding-bottom: 5px;
+        }
+
+        .card-data-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-top: 1px solid #f8f9fa;
+        }
+
+        .card-label {
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        .card-value {
+            font-weight: 400;
+            color: #495057;
+        }
+        
+        .stock-value {
+            color: #28a745; /* Green for stock */
+            font-weight: 700;
+        }
+        
+        .price-value {
+            color: #dc3545; /* Red for price */
+            font-weight: 700;
+        }
+
+        .card-actions {
+            margin-top: 15px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-edit, .btn-delete {
+            padding: 5px 10px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9em;
+            transition: background-color 0.2s;
+        }
+
+        .btn-edit {
+            background-color: #ffc107;
+            color: #333;
+        }
+        .btn-edit:hover { background-color: #e0a800; }
+
+        .btn-delete {
+            background-color: #dc3545;
+            color: white;
+        }
+        .btn-delete:hover { background-color: #c82333; }
+        
+        /* --- Modal Styling --- */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.4); /* Black w/ opacity */
+            justify-content: center;
+            align-items: center;
+            animation: fadeInModal 0.3s;
+        }
+
+        .modal-content {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: var(--shadow);
+            position: relative;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .close-btn {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            line-height: 1;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .close-btn:hover,
+        .close-btn:focus {
+            color: #333;
+            text-decoration: none;
+        }
+        
+        /* --- Form Elements --- */
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            font-size: 0.95em;
+        }
+
+        input[type="text"], input[type="number"] {
+            width: 100%;
+            padding: 10px 12px;
+            box-sizing: border-box;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        input[type="text"]:focus, input[type="number"]:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+            outline: none;
+        }
+        
+        /* --- Status/Message Styling --- */
+        #status-message {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 4px;
+            opacity: 1;
+            transition: opacity 0.5s ease-in-out;
+            text-align: center;
+            font-weight: 600;
+        }
+        
+        .error-message {
+            color: #721c24; 
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+        }
+
+        .success-message {
+            color: #155724; 
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+        }
+
+        /* --- Animations --- */
+        @keyframes fadeInModal {
+            from { opacity: 0 }
+            to { opacity: 1 }
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .product-item-fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>📦 Inventory & Billing System</h1>
+
+        <div class="header-controls">
+            <h2>Available Products</h2>
+            <div>
+                <a href="index.html" class="btn">Create Bill</a>
+                <a href="bills.html" class="btn" style="margin-left: 10px;">View All Bills</a>
+                <button class="btn" id="open-modal-btn" style="margin-left: 10px;">➕ Add New Product</button>
+            </div>
+        </div>
+
+        <ul class="product-grid" id="products-list">
+            </ul>
+        
+        <p id="status-message" style="display:none;"></p>
+    </div>
+
+    <div id="productModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h2 id="modal-title">Add New Product</h2>
+            <form id="product-form">
+                <input type="hidden" id="edit-product-id" value="">
+                <div class="form-group">
+                    <label for="product_id">Product ID</label>
+                    <input type="text" id="product_id" name="product_id" required>
+                </div>
+                <div class="form-group">
+                    <label for="name">Name</label>
+                    <input type="text" id="name" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="available_stocks">Available Stocks</label>
+                    <input type="number" id="available_stocks" name="available_stocks" required min="0">
+                </div>
+                <div class="form-group">
+                    <label for="price_per_unit">Price Per Unit ($)</label>
+                    <input type="number" step="0.01" id="price_per_unit" name="price_per_unit" required min="0">
+                </div>
+                <div class="form-group">
+                    <label for="tax_percentage">Tax Percentage (%)</label>
+                    <input type="number" step="0.01" id="tax_percentage" name="tax_percentage" required min="0" max="100">
+                </div>
+                <button type="submit" id="form-submit-btn" class="btn">Add Product</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://127.0.0.1:8000';
+        let products = []; // Cache for products
+        const productsList = document.getElementById('products-list');
+        const productForm = document.getElementById('product-form');
+        const statusMessageElement = document.getElementById('status-message');
+        
+        // Modal Elements
+        const modal = document.getElementById('productModal');
+        const modalTitle = document.getElementById('modal-title');
+        const openModalBtn = document.getElementById('open-modal-btn');
+        const closeBtn = document.querySelector('.close-btn');
+        const formSubmitBtn = document.getElementById('form-submit-btn');
+
+        function resetModal() {
+            productForm.reset();
+            document.getElementById('edit-product-id').value = '';
+            modalTitle.textContent = 'Add New Product';
+            formSubmitBtn.textContent = 'Add Product';
+            document.getElementById('product_id').readOnly = false;
+        }
+
+        openModalBtn.onclick = () => {
+            resetModal();
+            modal.style.display = 'flex';
+            document.getElementById('product_id').focus();
+        };
+
+        closeBtn.onclick = () => { modal.style.display = 'none'; };
+        window.onclick = (event) => {
+            if (event.target === modal) modal.style.display = 'none';
+        };
+
+        function showMessage(message, isError = true) {
+            statusMessageElement.textContent = message;
+            statusMessageElement.style.display = 'block';
+            statusMessageElement.className = isError ? 'error-message' : 'success-message';
+            setTimeout(() => { statusMessageElement.style.display = 'none'; }, 4000);
+        }
+
+        function renderProducts(productsData) {
+            products = productsData; // Update cache
+            productsList.innerHTML = '';
+            if (products.length === 0) {
+                productsList.innerHTML = '<li>No products found.</li>';
+                return;
+            }
+            products.forEach((product, index) => {
+                const listItem = document.createElement('li');
+                listItem.className = 'product-card product-item-fade-in';
+                listItem.style.animationDelay = `${index * 0.05}s`;
+                
+                listItem.innerHTML = `
+                    <div class="card-title">${product.name}</div>
+                    <div class="card-subtitle">ID: ${product.product_id}</div>
+                    <div class="card-data-row">
+                        <span class="card-label">Available Stocks:</span>
+                        <span class="card-value stock-value">${product.available_stocks}</span>
+                    </div>
+                    <div class="card-data-row">
+                        <span class="card-label">Price Per Unit:</span>
+                        <span class="card-value price-value">$${product.price_per_unit.toFixed(2)}</span>
+                    </div>
+                    <div class="card-data-row">
+                        <span class="card-label">Tax Percentage:</span>
+                        <span class="card-value">${product.tax_percentage}%</span>
+                    </div>
+                    <div class="card-actions">
+                        <button class="btn-edit" data-id="${product.product_id}">Edit</button>
+                        <button class="btn-delete" data-id="${product.product_id}">Delete</button>
+                    </div>
+                `;
+                productsList.appendChild(listItem);
+            });
+        }
+        
+        async function fetchProducts() {
+            try {
+                const response = await fetch(`${API_URL}/products`);
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const productsData = await response.json();
+                renderProducts(productsData);
+            } catch (error) {
+                showMessage('Failed to load products. Check API connection.');
+            }
+        }
+
+        productForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const editId = document.getElementById('edit-product-id').value;
+            const isEditMode = !!editId;
+
+            const formData = new FormData(productForm);
+            const productData = {
+                product_id: formData.get('product_id'),
+                name: formData.get('name'),
+                available_stocks: parseInt(formData.get('available_stocks'), 10),
+                price_per_unit: parseFloat(formData.get('price_per_unit')),
+                tax_percentage: parseFloat(formData.get('tax_percentage')),
+            };
+
+            if (productData.available_stocks < 0 || productData.price_per_unit < 0 || productData.tax_percentage < 0) {
+                 showMessage('Stocks, Price, and Tax must be non-negative numbers.', true);
+                 return;
+            }
+
+            const url = isEditMode ? `${API_URL}/products/${editId}` : `${API_URL}/products`;
+            const method = isEditMode ? 'PUT' : 'POST';
+
+            try {
+                const response = await fetch(url, {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(productData),
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+                }
+
+                const message = isEditMode ? `Product "${productData.name}" updated successfully!` : `Product "${productData.name}" added successfully!`;
+                showMessage(message, false);
+                modal.style.display = 'none';
+                await fetchProducts();
+
+            } catch (error) {
+                showMessage(`Error: ${error.message}`, true);
+            }
+        });
+
+        productsList.addEventListener('click', async (event) => {
+            const target = event.target;
+            const productId = target.dataset.id;
+
+            if (target.classList.contains('btn-edit')) {
+                const product = products.find(p => p.product_id === productId);
+                if (!product) return;
+
+                resetModal();
+                modalTitle.textContent = 'Edit Product';
+                formSubmitBtn.textContent = 'Update Product';
+                
+                document.getElementById('edit-product-id').value = product.product_id;
+                document.getElementById('product_id').value = product.product_id;
+                document.getElementById('product_id').readOnly = true; // Don't allow editing the ID
+                document.getElementById('name').value = product.name;
+                document.getElementById('available_stocks').value = product.available_stocks;
+                document.getElementById('price_per_unit').value = product.price_per_unit;
+                document.getElementById('tax_percentage').value = product.tax_percentage;
+                
+                modal.style.display = 'flex';
+            }
+
+            if (target.classList.contains('btn-delete')) {
+                if (confirm(`Are you sure you want to delete product ID: ${productId}?`)) {
+                    try {
+                        const response = await fetch(`${API_URL}/products/${productId}`, { method: 'DELETE' });
+                        if (!response.ok) {
+                            const errorData = await response.json();
+                            throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+                        }
+                        showMessage(`Product ${productId} deleted successfully.`, false);
+                        await fetchProducts();
+                    } catch (error) {
+                        showMessage(`Error: ${error.message}`, true);
+                    }
+                }
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', fetchProducts);
+    </script>
+
+</body>
+</html>

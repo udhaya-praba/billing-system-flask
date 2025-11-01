@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>All Bills - Billing System</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --primary-color: #007bff;
+        --background-color: #f4f6f9;
+        --card-background: #ffffff;
+        --text-color: #333;
+        --shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      }
+      body {
+        font-family: "Inter", sans-serif;
+        margin: 0;
+        padding: 40px;
+        background-color: var(--background-color);
+        color: var(--text-color);
+      }
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+      h1 {
+        color: var(--primary-color);
+        font-weight: 700;
+      }
+      .btn {
+        background-color: var(--primary-color);
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-block;
+      }
+      .bill-list {
+        list-style-type: none;
+        padding: 0;
+      }
+      .bill-card {
+        background-color: var(--card-background);
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: var(--shadow);
+        margin-bottom: 20px;
+        border-left: 5px solid var(--primary-color);
+      }
+      .bill-header {
+        font-weight: 700;
+        font-size: 1.2em;
+        color: var(--primary-color);
+        margin-bottom: 15px;
+        display: flex;
+        justify-content: space-between;
+      }
+      .bill-details-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+      }
+      .detail-item {
+        padding: 5px 0;
+      }
+      .detail-label {
+        font-weight: 600;
+      }
+      .bill-link {
+        text-decoration: none;
+        color: inherit;
+      }
+      .header-controls {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header-controls">
+        <h1>All Bills</h1>
+        <div>
+          <a href="billing.html" class="btn">Create Bill</a>
+          <a href="index.html" class="btn" style="margin-left: 10px"
+            >All Products</a
+          >
+        </div>
+      </div>
+      <ul id="bills-list" class="bill-list"></ul>
+    </div>
+
+    <script>
+      const API_URL = "http://127.0.0.1:8000";
+
+      async function fetchBills() {
+        try {
+          const response = await fetch(`${API_URL}/bills`);
+          const bills = await response.json();
+          renderBills(bills);
+        } catch (error) {
+          document.getElementById("bills-list").innerHTML =
+            "<li>Failed to load bills.</li>";
+        }
+      }
+
+      function renderBills(bills) {
+        const billsList = document.getElementById("bills-list");
+        if (bills.length === 0) {
+          billsList.innerHTML = "<li>No bills found.</li>";
+          return;
+        }
+        billsList.innerHTML = bills
+          .map(
+            (bill) => `
+            <a href="bill-detail.html?id=${bill.id}" class="bill-link">
+                <li class="bill-card">
+                    <div class="bill-header">
+                        <span>Bill #${bill.bill_number}</span>
+                        <span>${new Date(
+                          bill.created_at
+                        ).toLocaleString()}</span>
+                    </div>
+                    <div class="bill-details-grid">
+                        <div class="detail-item"><span class="detail-label">Customer:</span> ${
+                          bill.customer_email
+                        }</div>
+                        <div class="detail-item"><span class="detail-label">Total Amount:</span> $${bill.total_amount.toFixed(
+                          2
+                        )}</div>
+                        <div class="detail-item"><span class="detail-label">Amount Paid:</span> $${bill.paid_amount.toFixed(
+                          2
+                        )}</div>
+                        <div class="detail-item"><span class="detail-label">Balance:</span> $${bill.balance_amount.toFixed(
+                          2
+                        )}</div>
+                    </div>
+                </li>
+            </a>
+            `
+          )
+          .join("");
+      }
+
+      document.addEventListener("DOMContentLoaded", fetchBills);
+    </script>
+  </body>
+</html>
