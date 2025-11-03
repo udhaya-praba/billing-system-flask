@@ -56,6 +56,23 @@ class BillResponse(BaseModel):
     class Config:
         from_attributes = True
 
+
+class ProductInfo(BaseModel):
+    name: str
+    product_id: str
+
+    class Config:
+        from_attributes = True
+
+
+class BillItemWithProduct(BillItemResponse):
+    product: ProductInfo
+
+
+class BillDetailResponse(BillResponse):
+    bill_items: List[BillItemWithProduct]
+
+
 class CustomerPurchaseHistory(BaseModel):
     customer_email: str
     total_purchases: int

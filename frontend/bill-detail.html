@@ -6,13 +6,17 @@
     <title>Bill Details - Billing System</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --primary-color: #007bff;
-            --background-color: #f4f6f9;
-            --card-background: #ffffff;
-            --text-color: #333;
-            --shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-        }
+      :root {
+        --primary-color: #007bff;
+        --primary-hover: #0056b3;
+        --secondary-color: #6c757d;
+        --background-color: #f4f6f9;
+        --card-background: #ffffff;
+        --text-color: #333;
+        --shadow: 0 4px 10px rgba(0, 0, 0, 0.05); /* Lighter shadow */
+        --success-color: #28a745;
+        --danger-color: #dc3545;
+      }
         body {
             font-family: 'Inter', sans-serif;
             margin: 0;
@@ -69,7 +73,8 @@
         const API_URL = 'http://127.0.0.1:8000';
 
         async function fetchBillDetails() {
-            const billId = new URLSearchParams(window.location.search).get('id');
+            const params = new URLSearchParams(window.location.search) ;
+            const billId = params.get('id') || params.get('bill_id') ;
             if (!billId) {
                 document.getElementById('bill-details-container').innerHTML = '<h1>No Bill ID provided.</h1>';
                 return;
@@ -94,9 +99,11 @@
                 // so we display what we have.
                 return `
                 <tr>
-                    <td>Bill Item #${item.id}</td>
+                    <td>${item.product.name}</td>
                     <td>${item.quantity}</td>
                     <td>$${item.unit_price.toFixed(2)}</td>
+                    <td>${item.tax_percentage.toFixed(2)}%</td>
+                    <td>$${item.item_tax.toFixed(2)}</td>
                     <td>$${item.item_total.toFixed(2)}</td>
                 </tr>
             `}).join('');
@@ -117,7 +124,7 @@
                     
                     <h3>Items Purchased</h3>
                     <table id="bill-items-table">
-                        <thead><tr><th>Product</th><th>Quantity</th><th>Unit Price</th><th>Total</th></tr></thead>
+                        <thead><tr><th>Product</th><th>Quantity</th><th>Unit Price</th><th>Tax %</th><th>Tax Amount</th><th>Total</th></tr></thead>
                         <tbody>${itemsHtml}</tbody>
                     </table>
 

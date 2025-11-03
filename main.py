@@ -1,5 +1,5 @@
 from fastapi import FastAPI, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import desc
 from datetime import datetime
@@ -243,10 +243,10 @@ def create_bill(bill_data: schemas.BillCreate, db: Session = Depends(get_db)):
             detail=f"Database integrity error: {e.orig}"
         )
 
-@app.get("/bills/{bill_id}", response_model=schemas.BillResponse)
+@app.get("/bills/{bill_id}", response_model=schemas.BillDetailResponse)
 def get_bill(bill_id: int, db: Session = Depends(get_db)):
     """Get bill by ID"""
-    bill = db.query(models.Bill).filter(models.Bill.id == bill_id).first()
+    bill = db.query(models.Bill).options(joinedload(models.Bill.bill_items).joinedload(models.BillItem.product)).filter(models.Bill.id == bill_id).first()
     
     if not bill:
         raise HTTPException(
