@@ -646,9 +646,7 @@
 
           if (!response.ok) {
             const err = await response.json();
-            throw new Error(
-              err.detail || `HTTP error! status: ${response.status}`
-            );
+            throw err;
           }
 
           const result = await response.json();
@@ -676,7 +674,12 @@
           updateChangeDue();
           fetchProducts(); // Refresh stock data
         } catch (error) {
-          showMessage(`Error generating bill: ${error.message}`, true);
+            if (error.detail && Array.isArray(error.detail)) {
+                const errorMessages = error.detail.map(d => `${d.loc.join(' -> ')}: ${d.msg}`).join('; ');
+                showMessage(`Error generating bill: ${errorMessages}`, true);
+            } else {
+                showMessage(`Error generating bill: ${error.message || "Something went wrong."}`, true);
+            }
         }
       });
 
